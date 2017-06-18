@@ -151,6 +151,9 @@ for file in "$@"; do
         hackedby="$(get_data "Hacked by" "$file")"
         translatedby="$(get_data "Translated by" "$file")"
         version="$(get_data "Version" "$file")"
+        license="$(get_data "License" "$file")"
+        programmer="$(get_data "Programmer" "$file")"
+        musician="$(get_data "Musician" "$file")"
 
         # cart : TODO
         # title : TODO
@@ -196,6 +199,9 @@ for file in "$@"; do
                 -s "/gameList/game[last()]" -t elem -n "gamefaq" -v "$gamefaq" \
                 -s "/gameList/game[last()]" -t elem -n "manual" -v "$manual" \
                 -s "/gameList/game[last()]" -t elem -n "vgmap" -v "$vgmap" \
+                -s "/gameList/game[last()]" -t elem -n "license" -v "$license" \
+                -s "/gameList/game[last()]" -t elem -n "programmer" -v "$programmer" \
+                -s "/gameList/game[last()]" -t elem -n "musician" -v "$musician" \
                 "$gamelist"
         fi
     else
@@ -232,6 +238,9 @@ for file in "$@"; do
                 -u "/gameList/game[name=\"$name\"]/gamefaq" -v "$gamefaq" \
                 -u "/gameList/game[name=\"$name\"]/manual" -v "$manual" \
                 -u "/gameList/game[name=\"$name\"]/vgmap" -v "$vgmap" \
+                -u "/gameList/game[name=\"$name\"]/license" -v "$license" \
+                -u "/gameList/game[name=\"$name\"]/programmer" -v "$programmer" \
+                -u "/gameList/game[name=\"$name\"]/musician" -v "$musician" \
                 "$gamelist"
         fi
     fi
