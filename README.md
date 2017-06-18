@@ -6,7 +6,7 @@ Trying to do what was requested here: https://retropie.org.uk/forum/post/79022
 Executing the `Used2BeTXT.sh` script with `--help` gives an idea of what the script does:
 
 ```
-$ ./Used2BeTXT.sh --help
+[PROMPT]$ ./Used2BeTXT.sh --help
 
 Usage:
 ./Used2BeTXT.sh [OPTIONS] synopsis1.txt [synopsisN.txt ...]
