@@ -24,10 +24,11 @@ The OPTIONS are:
 -u|--update     update the script and exit.
 
 --full          generate gamelist.xml using all metadata from \"synopsis1.txt\",
-                including the ones unused for EmulationStation.
+                including the ones unused for EmulationStation. The converted
+                file will be named \"PLATFORM_FULL_gamelist.xml\".
 
 The script gets data from \"synopsis1.txt\" and adds those data in xml format to
-a file named \"PLATFORM_gamelist.txt\", where PLATFORM is the one indicated in
+a file named \"PLATFORM_gamelist.xml\", where PLATFORM is the one indicated in
 'Platform:' line in \"synopsis.txt\".
 "
 
