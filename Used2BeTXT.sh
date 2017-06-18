@@ -138,7 +138,7 @@ for file in "$@"; do
     # players : "Players"
     players="$(get_data "Players" "$file")"
     # Note: players must be an integer
-    players=$(echo $players | sed 's/[^0-9 ]//g' | tr -s ' ' '\n' | sort -nr | head -1)
+    [[ -n "$players" ]] && players=$(echo $players | sed 's/[^0-9 ]//g' | tr -s ' ' '\n' | sort -nr | head -1)
 
     # desc : the content below "______" to the end of file
     desc="$(sed '/^__________/,$!d' "$file" | tail -n +2 | tr -d '\r' | sed 's/&/&amp;/g')"
