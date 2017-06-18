@@ -108,6 +108,10 @@ for file in "$@"; do
     name="$(head -1 "$file" | tr -d '\r' | sed 's/&/&amp;/g')"
     [[ -z "$name" ]] && continue
 
+    # folder : "Folder"
+    folder="$(get_data "Folder" "$file")"
+    [[ -n "$folder" ]] && game=folder || game=game
+
     # path : TODO
     # image : TODO
     # video : TODO
@@ -164,22 +168,22 @@ for file in "$@"; do
         # vgmap : TODO
     fi
 
-    if [[ $(xmlstarlet sel -t -v "count(/gameList/game[name=\"$name\"])" "$gamelist") -eq 0 ]]; then
-        xmlstarlet ed -L -s "/gameList" -t elem -n "game" -v "" \
-            -s "/gameList/game[last()]" -t elem -n "name" -v "$name" \
-            -s "/gameList/game[last()]" -t elem -n "path" -v "$path" \
-            -s "/gameList/game[last()]" -t elem -n "image" -v "$image" \
-            -s "/gameList/game[last()]" -t elem -n "video" -v "$video" \
-            -s "/gameList/game[last()]" -t elem -n "marquee" -v "$marquee" \
-            -s "/gameList/game[last()]" -t elem -n "desc" -v "$desc" \
-            -s "/gameList/game[last()]" -t elem -n "releasedate" -v "$releasedate" \
-            -s "/gameList/game[last()]" -t elem -n "developer" -v "$developer" \
-            -s "/gameList/game[last()]" -t elem -n "publisher" -v "$publisher" \
-            -s "/gameList/game[last()]" -t elem -n "genre" -v "$genre" \
-            -s "/gameList/game[last()]" -t elem -n "players" -v "$players" \
+    if [[ $(xmlstarlet sel -t -v "count(/gameList/$game[name=\"$name\"])" "$gamelist") -eq 0 ]]; then
+        xmlstarlet ed -L -s "/gameList" -t elem -n "$game" -v "" \
+            -s "/gameList/$game[last()]" -t elem -n "name" -v "$name" \
+            -s "/gameList/$game[last()]" -t elem -n "path" -v "$path" \
+            -s "/gameList/$game[last()]" -t elem -n "image" -v "$image" \
+            -s "/gameList/$game[last()]" -t elem -n "video" -v "$video" \
+            -s "/gameList/$game[last()]" -t elem -n "marquee" -v "$marquee" \
+            -s "/gameList/$game[last()]" -t elem -n "desc" -v "$desc" \
+            -s "/gameList/$game[last()]" -t elem -n "releasedate" -v "$releasedate" \
+            -s "/gameList/$game[last()]" -t elem -n "developer" -v "$developer" \
+            -s "/gameList/$game[last()]" -t elem -n "publisher" -v "$publisher" \
+            -s "/gameList/$game[last()]" -t elem -n "genre" -v "$genre" \
+            -s "/gameList/$game[last()]" -t elem -n "players" -v "$players" \
             "$gamelist"
 
-        if [[ "$FULL_FLAG" == 1 ]]; then
+        if [[ "$game" == game && "$FULL_FLAG" == 1 ]]; then
             xmlstarlet ed -L \
                 -s "/gameList/game[last()]" -t elem -n "region" -v "$region" \
                 -s "/gameList/game[last()]" -t elem -n "platform" -v "$platform" \
@@ -206,19 +210,19 @@ for file in "$@"; do
         fi
     else
         xmlstarlet ed -L \
-            -u "/gameList/game[name=\"$name\"]/path" -v "$path" \
-            -u "/gameList/game[name=\"$name\"]/image" -v "$image" \
-            -u "/gameList/game[name=\"$name\"]/video" -v "$video" \
-            -u "/gameList/game[name=\"$name\"]/marquee" -v "$marquee" \
-            -u "/gameList/game[name=\"$name\"]/desc" -v "$desc" \
-            -u "/gameList/game[name=\"$name\"]/releasedate" -v "$releasedate" \
-            -u "/gameList/game[name=\"$name\"]/developer" -v "$developer" \
-            -u "/gameList/game[name=\"$name\"]/publisher" -v "$publisher" \
-            -u "/gameList/game[name=\"$name\"]/genre" -v "$genre" \
-            -u "/gameList/game[name=\"$name\"]/players" -v "$players" \
+            -u "/gameList/$game[name=\"$name\"]/path" -v "$path" \
+            -u "/gameList/$game[name=\"$name\"]/image" -v "$image" \
+            -u "/gameList/$game[name=\"$name\"]/video" -v "$video" \
+            -u "/gameList/$game[name=\"$name\"]/marquee" -v "$marquee" \
+            -u "/gameList/$game[name=\"$name\"]/desc" -v "$desc" \
+            -u "/gameList/$game[name=\"$name\"]/releasedate" -v "$releasedate" \
+            -u "/gameList/$game[name=\"$name\"]/developer" -v "$developer" \
+            -u "/gameList/$game[name=\"$name\"]/publisher" -v "$publisher" \
+            -u "/gameList/$game[name=\"$name\"]/genre" -v "$genre" \
+            -u "/gameList/$game[name=\"$name\"]/players" -v "$players" \
             "$gamelist"
 
-        if [[ "$FULL_FLAG" == 1 ]]; then
+        if [[ "$game" == game && "$FULL_FLAG" == 1 ]]; then
             xmlstarlet ed -L \
                 -u "/gameList/game[name=\"$name\"]/region" -v "$region" \
                 -u "/gameList/game[name=\"$name\"]/platform" -v "$platform" \
