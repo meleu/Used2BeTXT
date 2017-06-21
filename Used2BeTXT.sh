@@ -25,6 +25,8 @@ The OPTIONS are:
 
 -u|--update     update the script and exit.
 
+--no-desc       do not generate <desc> entries (can't be used with --full)
+
 --full          generate gamelist.xml using all metadata from \"synopsis1.txt\",
                 including the ones unused for EmulationStation. The converted
                 file will be named \"PLATFORM_FULL_gamelist.xml\".
@@ -35,7 +37,7 @@ a file named \"PLATFORM_gamelist.xml\", where PLATFORM is the one indicated in
 "
 
 FULL_FLAG=0
-
+NO_DESC_FLAG=0
 
 
 function update_script() {
@@ -103,6 +105,10 @@ case "$1" in
         ;;
     --full)
         FULL_FLAG=1
+        shift
+        ;;
+    --no-desc)
+        NO_DESC_FLAG=1
         shift
         ;;
     '')
@@ -240,7 +246,7 @@ for file in "$@"; do
     [[ -n "$players" ]] && players=$(echo $players | sed 's/[^0-9 ]//g' | tr -s ' ' '\n' | sort -nr | head -1)
 
     # desc : the content below "______" to the end of file
-    desc="$(sed '/^__________/,$!d' "$file" | tail -n +2 | tr -d '\r' | sed 's/&/&amp;/g')"
+    [[ "$NO_DESC_FLAG" -eq 0 ]] && desc="$(sed '/^__________/,$!d' "$file" | tail -n +2 | tr -d '\r' | sed 's/&/&amp;/g')"
 
     if [[ "$FULL_FLAG" == 1 ]]; then
         region="$(get_data "Region" "$file")"
