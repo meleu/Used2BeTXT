@@ -134,6 +134,10 @@ for file in "$@"; do
     [[ -z "$name" ]] && continue
 
     case "$platform" in
+        atari2600)
+            xtras_system="atari 2600"
+            ;;
+
         atari7800)
             xtras_system="atari 7800"
             ;;
@@ -210,11 +214,28 @@ for file in "$@"; do
     folder="$(get_data "Folder" "$file")"
     [[ -n "$folder" ]] && game=folder || game=game
 
-    # path : find the rom
-    path="$(find_file roms "$file_name" zip)"
+    # path : find the path
+    if [[ -n "$folder" ]]; then
+        # first - search in the "ressurection.xtras" style
+        path="$(find "$RP_DATA/Media" -type d -ipath "*/$xtras_system/roms/*" -iname "$folder" -print -quit)"
+        if [[ -z "$path" ]]; then
+            # second - search in the "Used2BeRX" style
+            found="$(find "$RP_DATA/Media" -type d -ipath "*/$platform/roms/*" -iname "$folder" -print -quit)"
+            if [[ -z "$found" ]]; then
+                # third (last) - search in the RetroPie style
+                found="$(find "$RP_DATA" -type d -ipath "*/roms/$platform/*" -iname "$folder" -print -quit)"
+            fi
+        fi
+    else
+        path="$(find_file roms "$file_name" zip)"
+    fi
 
     # image : find the box art
-    image="$(find_file "artwork/box front" "$file_name" "???" )"
+    if [[ -n "$folder" ]]; then
+        image="$(find_file "artwork/folders" "$file_name" "???" )"
+    else
+        image="$(find_file "artwork/box front" "$file_name" "???" )"
+    fi
 
     # video : find the video preview
     video="$(find_file movies "$file_name" "???")"
