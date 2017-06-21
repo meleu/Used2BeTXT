@@ -8,6 +8,8 @@
 #
 # meleu - 2017/Jun
 
+readonly RP_DATA="$HOME/RetroPie"
+
 readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_FULL="$SCRIPT_DIR/$SCRIPT_NAME"
@@ -68,6 +70,26 @@ function get_data() {
     grep -i "^$1:" "$2" | sed -e "s/^$1: //I; s/&/&amp;/g; s/\r//g"
 }
 
+function find_file() {
+    local found
+    local dir="$1"
+    local file="$2"
+    local ext="$3"
+
+    [[ -z "$ext" ]] && ext="*"
+
+    # first - search in the "ressurection.xtras" style
+    found="$(find "$RP_DATA/Media" -type f -ipath "*/$xtras_system/$dir/*" -iname "${file}.$ext" -print -quit)"
+    if [[ -z "$found" ]]; then
+        # second - search in the "Used2BeRX" style
+        found="$(find "$RP_DATA/Media" -type f -ipath "*/$platform/$dir/*" -iname "${file}.$ext" -print -quit)"
+        if [[ -z "$found" && "$dir" == roms ]]; then
+            # third (last) - search in the RetroPie style
+            found="$(find "$RP_DATA" -type f -ipath "*/roms/$platform/*" -iname "${file}.$ext" -print -quit)"
+        fi
+    fi
+    echo "$found"
+}
 
 # START HERE #################################################################
 
@@ -97,25 +119,101 @@ esac
 
 
 for file in "$@"; do
-    gamelist=$(grep "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
-    [[ -z "$gamelist" ]] && continue
-    [[ "$FULL_FLAG" == 1 ]] && gamelist+="_FULL"
-    gamelist+="_gamelist.xml"
-
-    [[ -f "$gamelist" ]] || echo "<gameList />" > "$gamelist"
+    platform=$(grep "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
+    [[ -z "$platform" ]] && continue
 
     # name : the very first line of the txt file
     name="$(head -1 "$file" | tr -d '\r' | sed 's/&/&amp;/g')"
     [[ -z "$name" ]] && continue
 
+    case "$platform" in
+        atari7800)
+            xtras_system="atari 7800"
+            ;;
+
+        nintendoentertainmentsystem)
+            platform="nes" 
+            xtras_system="nes"
+            ;;
+
+        thefamilycomputerdisksystem)
+            platform="fds"
+            xtras_system="nes"
+            ;;
+
+        nintendogameboyadvance)
+            platform="gba"
+            xtras_system="game boy advance"
+            ;;
+
+        nintendogameboycolor)
+            platform="gbc"
+            xtras_system="game boy color"
+            ;;
+
+        nintendogameboy)
+            platform="gb"
+            xtras_system="game boy"
+            ;;
+
+        segamastersystem)
+            platform="mastersystem"
+            xtras_system="master system"
+            ;;
+
+        segagamegear)
+            platform="gamegear" ;;
+
+        segasg-1000)
+            platform="sg-1000" ;;
+
+        segagenesis/megadrive)
+            platform="megadrive"
+            xtras_system="genesis"
+            ;;
+
+        sega/megacd)
+            platform="segacd" ;;
+
+        turbografx-16/pcengine)
+            platform="pcengine" ;;
+
+        neogeopocket)
+            platform="ngp"
+            xtras_system="neo geo pocket"
+            ;;
+
+        colecovision)
+            platform="coleco" ;;
+
+        bandaiwonderswan)
+            platform="wonderswan" ;;
+
+        bandaiwonderswancolor)
+            platform="wonderswancolor" ;;
+    esac
+
+    gamelist="$platform"
+    [[ "$FULL_FLAG" == 1 ]] && gamelist+="_FULL"
+    gamelist+="_gamelist.xml"
+
+    [[ -f "$gamelist" ]] || echo "<gameList />" > "$gamelist"
+
     # folder : "Folder"
     folder="$(get_data "Folder" "$file")"
     [[ -n "$folder" ]] && game=folder || game=game
 
-    # path : TODO
-    # image : TODO
-    # video : TODO
+    # path : find the rom
+    path="$(find_file roms "$name" zip)"
+
+    # image : find the box art
+    image="$(find_file "artwork/box front" "$name" "???" )"
+
+    # video : find the video preview
+    video="$(find_file movies "$name" "???")"
+
     # marquee : TODO
+    # there's no equivalent to marquee in ressurection.xtras
 
     # releasedate : "Release Year"
     releasedate="$(get_data "Release Year" "$file")"
@@ -145,7 +243,6 @@ for file in "$@"; do
 
     if [[ "$FULL_FLAG" == 1 ]]; then
         region="$(get_data "Region" "$file")"
-        platform="$(get_data "Platform" "$file")"
         media="$(get_data "Media" "$file")"
         controller="$(get_data "Controller" "$file")"
         gametype="$(get_data "Gametype" "$file")"
@@ -159,13 +256,27 @@ for file in "$@"; do
         programmer="$(get_data "Programmer" "$file")"
         musician="$(get_data "Musician" "$file")"
 
-        # cart : TODO
-        # title : TODO
-        # action : TODO
-        # threedbox : TODO
-        # gamefaq : TODO
-        # manual : TODO
-        # vgmap : TODO
+        # cart : find it
+        cart="$(find_file "artwork/cart" "$name" png)"
+
+        # title : find it
+        title="$(find_file "artwork/titles" "$name" png)"
+
+        # action : find it
+        action="$(find_file "artwork/action" "$name" png)"
+
+        # threedbox : find it
+        threedbox="$(find_file "artwork/3d boxart" "$name" png)"
+
+        # gamefaq : find it
+        gamefaq="$(find_file "gamefaqs" "$name" zip)"
+
+        # manual : find it
+        manual="$(find_file "manuals" "$name" zip)"
+
+        # vgmap : find it
+        vgmap="$(find_file "vgmaps" "$name" zip)"
+
     fi
 
     if [[ $(xmlstarlet sel -t -v "count(/gameList/$game[name=\"$name\"])" "$gamelist") -eq 0 ]]; then
