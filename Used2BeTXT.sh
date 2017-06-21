@@ -119,6 +119,7 @@ esac
 
 
 for file in "$@"; do
+    file_name="$(basename "${file%.*}")"
     platform=$(grep "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
     [[ -z "$platform" ]] && continue
 
@@ -204,13 +205,13 @@ for file in "$@"; do
     [[ -n "$folder" ]] && game=folder || game=game
 
     # path : find the rom
-    path="$(find_file roms "$name" zip)"
+    path="$(find_file roms "$file_name" zip)"
 
     # image : find the box art
-    image="$(find_file "artwork/box front" "$name" "???" )"
+    image="$(find_file "artwork/box front" "$file_name" "???" )"
 
     # video : find the video preview
-    video="$(find_file movies "$name" "???")"
+    video="$(find_file movies "$file_name" "???")"
 
     # marquee : TODO
     # there's no equivalent to marquee in ressurection.xtras
@@ -257,25 +258,25 @@ for file in "$@"; do
         musician="$(get_data "Musician" "$file")"
 
         # cart : find it
-        cart="$(find_file "artwork/cart" "$name" png)"
+        cart="$(find_file "artwork/cart" "$file_name" png)"
 
         # title : find it
-        title="$(find_file "artwork/titles" "$name" png)"
+        title="$(find_file "artwork/titles" "$file_name" png)"
 
         # action : find it
-        action="$(find_file "artwork/action" "$name" png)"
+        action="$(find_file "artwork/action" "$file_name" png)"
 
         # threedbox : find it
-        threedbox="$(find_file "artwork/3d boxart" "$name" png)"
+        threedbox="$(find_file "artwork/3d boxart" "$file_name" png)"
 
         # gamefaq : find it
-        gamefaq="$(find_file "gamefaqs" "$name" zip)"
+        gamefaq="$(find_file "gamefaqs" "$file_name" zip)"
 
         # manual : find it
-        manual="$(find_file "manuals" "$name" zip)"
+        manual="$(find_file "manuals" "$file_name" zip)"
 
         # vgmap : find it
-        vgmap="$(find_file "vgmaps" "$name" zip)"
+        vgmap="$(find_file "vgmaps" "$file_name" zip)"
 
     fi
 
