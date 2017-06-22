@@ -85,14 +85,14 @@ function find_file() {
     [[ -z "$ext" ]] && ext="*"
 
     if [[ "$dir" == roms ]]; then
-        found="$(find "$RP_DATA/roms/$platform" -type f -iname "${file}.$ext" -print -quit)"
+        found="$(find "$RP_DATA/roms/$platform" -type f -iname "${file}.$ext" -print -quit 2> /dev/null)"
         if [[ -n "$found" ]]; then
             echo "${found//&/&amp;}"
             return
         fi
     fi
 
-    found="$(find "$RP_DATA/Media/$platform/$dir" -type f -iname "${file}.$ext" -print -quit)"
+    found="$(find "$RP_DATA/Media/$platform/$dir" -type f -iname "${file}.$ext" -print -quit 2> /dev/null)"
     [[ -z "$found" ]] \
     && found="$(find "$RP_DATA/Media" -type f -ipath "$RP_DATA/Media/$xtras_system/$dir/*" -iname "${file}.$ext" -print -quit)"
 
