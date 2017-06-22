@@ -25,7 +25,10 @@ The OPTIONS are:
 
 -u|--update     update the script and exit.
 
---no-desc       do not generate <desc> entries
+--only-new      only add new entries to \"gamelist.xml\" (do not update
+                existing entries).
+
+--no-desc       do not generate <desc> entries.
 
 --full          generate gamelist.xml using all metadata from \"synopsis1.txt\",
                 including the ones unused for EmulationStation. The converted
@@ -38,6 +41,7 @@ a file named \"PLATFORM_gamelist.xml\", where PLATFORM is the one indicated in
 
 FULL_FLAG=0
 NO_DESC_FLAG=0
+ONLY_NEW_FLAG=0
 
 
 function update_script() {
@@ -110,6 +114,10 @@ while [[ -n "$1" ]]; do
             ;;
         --no-desc)
             NO_DESC_FLAG=1
+            shift
+            ;;
+        --only-new)
+            ONLY_NEW_FLAG=1
             shift
             ;;
         *)
@@ -209,6 +217,13 @@ for file in "$@"; do
     folder="$(get_data "Folder" "$file")"
     [[ -n "$folder" ]] && game=folder || game=game
 
+    if [[ $(xmlstarlet sel -t -v "count(/gameList/$game[name=\"${name/&amp;/&}\"])" "$gamelist") -eq 0 ]]; then
+        NEW_ENTRY_FLAG=1
+    else
+        NEW_ENTRY_FLAG=0
+    fi
+    [[ "$NEW_ENTRY_FLAG" -eq 0 && "$ONLY_NEW_FLAG" -eq 1 ]] && continue
+
     # path : find the path
     if [[ -n "$folder" ]]; then
         # first - search in the "ressurection.xtras" style
@@ -307,7 +322,7 @@ for file in "$@"; do
 
     fi
 
-    if [[ $(xmlstarlet sel -t -v "count(/gameList/$game[name=\"$name\"])" "$gamelist") -eq 0 ]]; then
+    if [[ "$NEW_ENTRY_FLAG" -eq 1 ]]; then
         xmlstarlet ed -L -s "/gameList" -t elem -n "$game" -v "" \
             -s "/gameList/$game[last()]" -t elem -n "name" -v "$name" \
             -s "/gameList/$game[last()]" -t elem -n "path" -v "$path" \
