@@ -84,16 +84,18 @@ function find_file() {
 
     [[ -z "$ext" ]] && ext="*"
 
-    # first - search in the "ressurection.xtras" style
-    found="$(find "$RP_DATA/Media" -type f -ipath "*/$xtras_system/$dir/*" -iname "${file}.$ext" -print -quit)"
-    if [[ -z "$found" ]]; then
-        # second - search in the "Used2BeRX" style
-        found="$(find "$RP_DATA/Media" -type f -ipath "*/$platform/$dir/*" -iname "${file}.$ext" -print -quit)"
-        if [[ -z "$found" && "$dir" == roms ]]; then
-            # third (last) - search in the RetroPie style
-            found="$(find "$RP_DATA" -type f -ipath "*/roms/$platform/*" -iname "${file}.$ext" -print -quit)"
+    if [[ "$dir" == roms ]]; then
+        found="$(find "$RP_DATA/roms/$platform" -type f -iname "${file}.$ext" -print -quit)"
+        if [[ -z "$found" ]]; then
+            echo "${found//&/&amp;}"
+            return
         fi
     fi
+
+    found="$(find "$RP_DATA/Media" -type f -ipath "*/$xtras_system/$dir/*" -iname "${file}.$ext" -print -quit)"
+    [[ -z "$found" ]] \
+    && found="$(find "$RP_DATA/Media" -type f -ipath "*/$platform/$dir/*" -iname "${file}.$ext" -print -quit)"
+
     echo "${found//&/&amp;}"
 }
 
