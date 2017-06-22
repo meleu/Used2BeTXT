@@ -86,7 +86,7 @@ function find_file() {
 
     if [[ "$dir" == roms ]]; then
         found="$(find "$RP_DATA/roms/$platform" -type f -iname "${file}.$ext" -print -quit)"
-        if [[ -z "$found" ]]; then
+        if [[ -n "$found" ]]; then
             echo "${found//&/&amp;}"
             return
         fi
