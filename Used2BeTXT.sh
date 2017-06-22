@@ -25,7 +25,7 @@ The OPTIONS are:
 
 -u|--update     update the script and exit.
 
---no-desc       do not generate <desc> entries (can't be used with --full)
+--no-desc       do not generate <desc> entries
 
 --full          generate gamelist.xml using all metadata from \"synopsis1.txt\",
                 including the ones unused for EmulationStation. The converted
@@ -95,33 +95,28 @@ function find_file() {
 
 # START HERE #################################################################
 
-case "$1" in
-    -h|--help)
-        echo "$HELP" >&2
-        exit 0
-        ;;
-    -u|--update)
-        update_script
-        ;;
-    --full)
-        FULL_FLAG=1
-        shift
-        ;;
-    --no-desc)
-        NO_DESC_FLAG=1
-        shift
-        ;;
-    '')
-        echo "ERROR: missing synopsis text file." >&2
-        echo "$HELP" >&2
-        exit 1
-        ;;
-    -*)
-        echo "ERROR: \"$1\": invalid option" >&2
-        echo "$HELP" >&2
-        exit 1
-        ;;
-esac
+while [[ -n "$1" ]]; do
+    case "$1" in
+        -h|--help)
+            echo "$HELP" >&2
+            exit 0
+            ;;
+        -u|--update)
+            update_script
+            ;;
+        --full)
+            FULL_FLAG=1
+            shift
+            ;;
+        --no-desc)
+            NO_DESC_FLAG=1
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 
 for file in "$@"; do
@@ -220,10 +215,10 @@ for file in "$@"; do
         path="$(find "$RP_DATA/Media" -type d -ipath "*/$xtras_system/roms/*" -iname "$folder" -print -quit)"
         if [[ -z "$path" ]]; then
             # second - search in the "Used2BeRX" style
-            found="$(find "$RP_DATA/Media" -type d -ipath "*/$platform/roms/*" -iname "$folder" -print -quit)"
-            if [[ -z "$found" ]]; then
+            path="$(find "$RP_DATA/Media" -type d -ipath "*/$platform/roms/*" -iname "$folder" -print -quit)"
+            if [[ -z "$path" ]]; then
                 # third (last) - search in the RetroPie style
-                found="$(find "$RP_DATA" -type d -ipath "*/roms/$platform/*" -iname "$folder" -print -quit)"
+                path="$(find "$RP_DATA" -type d -ipath "*/roms/$platform/*" -iname "$folder" -print -quit)"
             fi
         fi
     else
@@ -270,11 +265,16 @@ for file in "$@"; do
     [[ "$NO_DESC_FLAG" -eq 0 ]] && desc="$(sed '/^__________/,$!d' "$file" | tail -n +2 | tr -d '\r' | sed 's/&/&amp;/g')"
 
     if [[ "$FULL_FLAG" == 1 ]]; then
+        if [[ -n "$folder" ]]; then
+            xtrasname="$folder"
+        else
+            xtrasname="${file_name%.*}"
+        fi
+
         region="$(get_data "Region" "$file")"
         media="$(get_data "Media" "$file")"
         controller="$(get_data "Controller" "$file")"
         gametype="$(get_data "Gametype" "$file")"
-        xtrasname="$(get_data "Xtras Name" "$file")"
         originaltitle="$(get_data "Original Title" "$file")"
         alternatetitle="$(get_data "Alternate Title" "$file")"
         hackedby="$(get_data "Hacked by" "$file")"
