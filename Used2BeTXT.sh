@@ -74,8 +74,8 @@ function get_data() {
 
 function find_file() {
     local found
-    local dir="$1"
-    local file="$2"
+    local dir="$( echo "$1" | tr '[]&' '???')"
+    local file="$(echo "$2" | tr '[]&' '???')"
     local ext="$3"
 
     [[ -z "$ext" ]] && ext="*"
@@ -90,7 +90,7 @@ function find_file() {
             found="$(find "$RP_DATA" -type f -ipath "*/roms/$platform/*" -iname "${file}.$ext" -print -quit)"
         fi
     fi
-    echo "$found"
+    echo "$found" | sed "s/&/&amp;/g"
 }
 
 # START HERE #################################################################
