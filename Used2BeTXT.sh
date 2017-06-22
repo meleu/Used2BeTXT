@@ -239,18 +239,18 @@ for file in "$@"; do
             fi
         fi
     else
-        path="$(find_file roms "$file_name" zip)"
+        path="$(find_file Roms "$file_name" zip)"
     fi
 
     # image : find the box art
     if [[ -n "$folder" ]]; then
-        image="$(find_file "artwork/folders" "$file_name" "???" )"
+        image="$(find_file "Artwork/Folders" "$file_name" "???" )"
     else
-        image="$(find_file "artwork/box front" "$file_name" "???" )"
+        image="$(find_file "Artwork/Box Front" "$file_name" "???" )"
     fi
 
     # video : find the video preview
-    video="$(find_file movies "$file_name" "???")"
+    video="$(find_file Movies "$file_name" "???")"
 
     # marquee : TODO
     # there's no equivalent to marquee in ressurection.xtras
@@ -302,25 +302,25 @@ for file in "$@"; do
         musician="$(get_data "Musician" "$file")"
 
         # cart : find it
-        cart="$(find_file "artwork/cart" "$file_name" png)"
+        cart="$(find_file "Artwork/Cart" "$file_name" png)"
 
         # title : find it
-        title="$(find_file "artwork/titles" "$file_name" png)"
+        title="$(find_file "Artwork/Titles" "$file_name" png)"
 
         # action : find it
-        action="$(find_file "artwork/action" "$file_name" png)"
+        action="$(find_file "Artwork/Action" "$file_name" png)"
 
         # threedbox : find it
-        threedbox="$(find_file "artwork/3d boxart" "$file_name" png)"
+        threedbox="$(find_file "Artwork/3D Boxart" "$file_name" png)"
 
         # gamefaq : find it
-        gamefaq="$(find_file "gamefaqs" "$file_name" zip)"
+        gamefaq="$(find_file "GameFAQs" "$file_name" zip)"
 
         # manual : find it
-        manual="$(find_file "manuals" "$file_name" zip)"
+        manual="$(find_file "Manuals" "$file_name" zip)"
 
         # vgmap : find it
-        vgmap="$(find_file "vgmaps" "$file_name" zip)"
+        vgmap="$(find_file "VGMaps" "$file_name" zip)"
 
     fi
 
