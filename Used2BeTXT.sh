@@ -94,7 +94,7 @@ function find_file() {
             found="$(find "$RP_DATA" -type f -ipath "*/roms/$platform/*" -iname "${file}.$ext" -print -quit)"
         fi
     fi
-    echo "$found" | sed "s/&/&amp;/g"
+    echo "${found//&/&amp;}"
 }
 
 # START HERE #################################################################
