@@ -8,6 +8,11 @@
 #
 # meleu - 2017/Jun
 
+FULL_FLAG=0
+NO_DESC_FLAG=0
+ONLY_NEW_FLAG=0
+IMG_DIR="Artwork/Box Front"
+
 readonly RP_DATA="$HOME/RetroPie"
 
 readonly SCRIPT_DIR="$(dirname "$0")"
@@ -34,14 +39,13 @@ The OPTIONS are:
                 including the ones unused for EmulationStation. The converted
                 file will be named \"PLATFORM_FULL_gamelist.xml\".
 
+--image TYPE    choose the art type for <image>. Valid options for
+                TYPE: boxfront, cart, title, action, 3dbox.
+
 The script gets data from \"synopsis1.txt\" and adds those data in xml format to
 a file named \"PLATFORM_gamelist.xml\", where PLATFORM is the one indicated in
 'Platform:' line in \"synopsis.txt\".
 "
-
-FULL_FLAG=0
-NO_DESC_FLAG=0
-ONLY_NEW_FLAG=0
 
 
 function update_script() {
@@ -73,7 +77,7 @@ function update_script() {
 
 
 function get_data() {
-    grep -i "^$1:" "$2" | sed -e "s/^$1: //I; s/&/&amp;/g; s/\r//g"
+    grep -m 1 -i "^$1:" "$2" | sed -e "s/^$1: //I; s/&/&amp;/g; s/\r//g"
 }
 
 function find_file() {
@@ -132,6 +136,25 @@ while [[ -n "$1" ]]; do
             ONLY_NEW_FLAG=1
             shift
             ;;
+        --image)
+            shift
+            case "$1" in
+                boxfront)
+                    IMG_DIR="Artwork/Box Front" ;;
+                cart)
+                    IMG_DIR="Artwork/Cart" ;;
+                title)
+                    IMG_DIR="Artwork/Titles" ;;
+                action)
+                    IMG_DIR="Artwork/Action" ;;
+                3dbox)
+                    IMG_DIR="Artwork/3D Boxart" ;;
+                *)
+                    echo "ERROR: invalid option for --image: \"$1\"" >&2
+                    exit 1
+                    ;;
+            esac
+            ;;
         *)
             break
             ;;
@@ -141,7 +164,7 @@ done
 
 for file in "$@"; do
     file_name="$(basename "${file%.*}")"
-    platform=$(grep "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
+    platform=$(grep -m 1 "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
     [[ -z "$platform" ]] && continue
 
     # name : the very first line of the txt file
@@ -256,7 +279,7 @@ for file in "$@"; do
     if [[ -n "$folder" ]]; then
         image="$(find_file "Artwork/Folders" "$file_name" png jpg )"
     else
-        image="$(find_file "Artwork/Box Front" "$file_name" png jpg )"
+        image="$(find_file "$IMG_DIR" "$file_name" png jpg )"
     fi
 
     # video : find the video preview
