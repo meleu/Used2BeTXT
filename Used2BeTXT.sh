@@ -80,21 +80,31 @@ function find_file() {
     local found
     local dir="$( echo "$1" | tr '[]&' '???')"
     local file="$(echo "$2" | tr '[]&' '???')"
-    local ext="$3"
+    shift 2
+    local args=()
+    local ext
 
-    [[ -z "$ext" ]] && ext="*"
+    if [[ -z "$1" ]]; then
+        args=( -iname "${file}.*" )
+    else
+        args=( -iname "${file}.$1" )
+        shift
+        for ext in "$@"; do
+            args+=( -o -iname "${file}.$ext" )
+        done
+    fi
 
     if [[ "$dir" == [Rr]oms ]]; then
-        found="$(find "$RP_DATA/roms/$platform" -type f -iname "${file}.$ext" -print -quit 2> /dev/null)"
+        found="$(find "$RP_DATA/roms/$platform" -type f \( "${args[@]}" \) -print -quit 2> /dev/null)"
         if [[ -n "$found" ]]; then
             echo "${found//&/&amp;}"
             return
         fi
     fi
 
-    found="$(find "$RP_DATA/Media/$platform/$dir" -type f -iname "${file}.$ext" -print -quit 2> /dev/null)"
+    found="$(find "$RP_DATA/Media/$platform/$dir" -type f \( "${args[@]}" \) -print -quit 2> /dev/null)"
     [[ -z "$found" ]] \
-    && found="$(find "$RP_DATA/Media" -type f -ipath "$RP_DATA/Media/$xtras_system/$dir/*" -iname "${file}.$ext" -print -quit)"
+    && found="$(find "$RP_DATA/Media" -type f -ipath "$RP_DATA/Media/$xtras_system/$dir/*" \( "${args[@]}" \) -print -quit)"
 
     echo "${found//&/&amp;}"
 }
@@ -239,14 +249,14 @@ for file in "$@"; do
             fi
         fi
     else
-        path="$(find_file Roms "$file_name" zip)"
+        path="$(find_file Roms "$file_name" zip bin )"
     fi
 
     # image : find the box art
     if [[ -n "$folder" ]]; then
-        image="$(find_file "Artwork/Folders" "$file_name" "???" )"
+        image="$(find_file "Artwork/Folders" "$file_name" png jpg )"
     else
-        image="$(find_file "Artwork/Box Front" "$file_name" "???" )"
+        image="$(find_file "Artwork/Box Front" "$file_name" png jpg )"
     fi
 
     # video : find the video preview
