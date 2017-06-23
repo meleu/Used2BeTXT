@@ -12,6 +12,7 @@ FULL_FLAG=0
 NO_DESC_FLAG=0
 ONLY_NEW_FLAG=0
 IMG_DIR="Artwork/Box Front"
+ROM_EXT="zip"
 
 readonly RP_DATA="$HOME/RetroPie"
 
@@ -180,6 +181,11 @@ for file in "$@"; do
             xtras_system="atari 7800"
             ;;
 
+        atari800)
+            xtras_system="atari 5200"
+            ROM_EXT+=" bin"
+            ;;
+
         nintendoentertainmentsystem)
             platform="nes" 
             xtras_system="nes"
@@ -272,7 +278,7 @@ for file in "$@"; do
             fi
         fi
     else
-        path="$(find_file Roms "$file_name" zip bin )"
+        path="$(find_file Roms "$file_name" $ROM_EXT )"
     fi
 
     # image : find the box art
