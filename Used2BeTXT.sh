@@ -174,6 +174,7 @@ for file in "$@"; do
     [[ -z "$name" ]] && continue
 
     ROM_EXT="zip"
+    [[ "$(get_data "Media" "$file")" == CD ]] && ROM_EXT+=" cue"
     case "$platform" in
         atari2600)
             xtras_system="atari 2600"
