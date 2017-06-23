@@ -12,7 +12,6 @@ FULL_FLAG=0
 NO_DESC_FLAG=0
 ONLY_NEW_FLAG=0
 IMG_DIR="Artwork/Box Front"
-ROM_EXT="zip"
 
 readonly RP_DATA="$HOME/RetroPie"
 
@@ -114,7 +113,7 @@ function find_file() {
     echo "${found//&/&amp;}"
 }
 
-# START HERE #################################################################
+# MANAGING OPTIONS ###########################################################
 
 while [[ -n "$1" ]]; do
     case "$1" in
@@ -163,6 +162,8 @@ while [[ -n "$1" ]]; do
 done
 
 
+# PROCESSING FILES ###########################################################
+
 for file in "$@"; do
     file_name="$(basename "${file%.*}")"
     platform=$(grep -m 1 "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
@@ -172,6 +173,7 @@ for file in "$@"; do
     name="$(head -1 "$file" | tr -d '\r' | sed 's/&/&amp;/g')"
     [[ -z "$name" ]] && continue
 
+    ROM_EXT="zip"
     case "$platform" in
         atari2600)
             xtras_system="atari 2600"
@@ -181,7 +183,7 @@ for file in "$@"; do
             xtras_system="atari 7800"
             ;;
 
-        atari800)
+        atari5200|atari800)
             xtras_system="atari 5200"
             ROM_EXT+=" bin"
             ;;
