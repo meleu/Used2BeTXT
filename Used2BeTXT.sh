@@ -11,6 +11,7 @@
 FULL_FLAG=0
 NO_DESC_FLAG=0
 ONLY_NEW_FLAG=0
+ONLY_IMG_FLAG=0
 IMG_DIR="Artwork/Box Front"
 
 readonly RP_DATA="$HOME/RetroPie"
@@ -41,6 +42,9 @@ The OPTIONS are:
 
 --image TYPE    choose the art type for <image>. Valid options for
                 TYPE: boxfront, cart, title, action, 3dbox.
+
+--only-image    if updating a \"gamelist.xml\", only update the <image>,
+                useful for changing image TYPE (see: --image).
 
 The script gets data from \"synopsis1.txt\" and adds those data in xml format to
 a file named \"PLATFORM_gamelist.xml\", where PLATFORM is the one indicated in
@@ -136,6 +140,10 @@ while [[ -n "$1" ]]; do
             ONLY_NEW_FLAG=1
             shift
             ;;
+        --only-image)
+            ONLY_IMG_FLAG=1
+            shift
+            ;;
         --image)
             shift
             case "$1" in
@@ -154,6 +162,7 @@ while [[ -n "$1" ]]; do
                     exit 1
                     ;;
             esac
+            shift
             ;;
         *)
             break
@@ -170,7 +179,8 @@ for file in "$@"; do
     [[ -z "$platform" ]] && continue
 
     # name : the very first line of the txt file
-    name="$(head -1 "$file" | tr -d '\r' | sed 's/&/&amp;/g')"
+    name_real="$(head -1 "$file" | tr -d '\r')"
+    name="${name_real//&/&amp;}"
     [[ -z "$name" ]] && continue
 
     ROM_EXT="zip"
@@ -261,28 +271,12 @@ for file in "$@"; do
     folder="$(get_data "Folder" "$file")"
     [[ -n "$folder" ]] && game=folder || game=game
 
-    if [[ $(xmlstarlet sel -t -v "count(/gameList/$game[name=\"${name/&amp;/&}\"])" "$gamelist") -eq 0 ]]; then
+    if [[ $(xmlstarlet sel -t -v "count(/gameList/$game[name=\"$name_real\"])" "$gamelist") -eq 0 ]]; then
         NEW_ENTRY_FLAG=1
     else
         NEW_ENTRY_FLAG=0
     fi
     [[ "$NEW_ENTRY_FLAG" -eq 0 && "$ONLY_NEW_FLAG" -eq 1 ]] && continue
-
-    # path : find the path
-    if [[ -n "$folder" ]]; then
-        # first - search in the "ressurection.xtras" style
-        path="$(find "$RP_DATA/Media" -type d -ipath "*/$xtras_system/roms/*" -iname "$folder" -print -quit)"
-        if [[ -z "$path" ]]; then
-            # second - search in the "Used2BeRX" style
-            path="$(find "$RP_DATA/Media" -type d -ipath "*/$platform/roms/*" -iname "$folder" -print -quit)"
-            if [[ -z "$path" ]]; then
-                # third (last) - search in the RetroPie style
-                path="$(find "$RP_DATA" -type d -ipath "*/roms/$platform/*" -iname "$folder" -print -quit)"
-            fi
-        fi
-    else
-        path="$(find_file Roms "$file_name" $ROM_EXT )"
-    fi
 
     # image : find the box art
     if [[ -n "$folder" ]]; then
@@ -291,80 +285,97 @@ for file in "$@"; do
         image="$(find_file "$IMG_DIR" "$file_name" png jpg )"
     fi
 
-    # video : find the video preview
-    video="$(find_file Movies "$file_name" "???")"
-
-    # marquee : TODO
-    # there's no equivalent to marquee in ressurection.xtras
-
-    # releasedate : "Release Year"
-    releasedate="$(get_data "Release Year" "$file")"
-    # Note: releasedate must be a date/time in the format %Y%m%dT%H%M%S or empty
-    if [[ "$releasedate" =~ ^[[:digit:]]{1,4}$ ]]; then
-        releasedate="$(date -d ${releasedate}-1-1 +%Y%m%dT%H%M%S)" || realeasedate=""
-    else
-        releasedate=""
-    fi
-
-    # developer : "Developer"
-    developer="$(get_data "Developer" "$file")"
-
-    # publisher : "Publisher"
-    publisher="$(get_data "Publisher" "$file")"
-
-    # genre : "Genre"
-    genre="$(get_data "Genre" "$file")"
-
-    # players : "Players"
-    players="$(get_data "Players" "$file")"
-    # Note: players must be an integer
-    [[ -n "$players" ]] && players=$(echo $players | sed 's/[^0-9 ]//g' | tr -s ' ' '\n' | sort -nr | head -1)
-
-    # desc : the content below "______" to the end of file
-    [[ "$NO_DESC_FLAG" -eq 0 ]] && desc="$(sed '/^__________/,$!d' "$file" | tail -n +2 | tr -d '\r' | sed 's/&/&amp;/g')"
-
-    if [[ "$FULL_FLAG" == 1 ]]; then
+    if [[ "$NEW_ENTRY_FLAG" -eq 1 || "$ONLY_IMG_FLAG" -eq 0 ]]; then
+        # path : find the path
         if [[ -n "$folder" ]]; then
-            xtrasname="$folder"
+            # first - search in the "ressurection.xtras" style
+            path="$(find "$RP_DATA/Media" -type d -ipath "*/$xtras_system/roms/*" -iname "$folder" -print -quit)"
+            if [[ -z "$path" ]]; then
+                # second - search in the "Used2BeRX" style
+                path="$(find "$RP_DATA/Media" -type d -ipath "*/$platform/roms/*" -iname "$folder" -print -quit)"
+                if [[ -z "$path" ]]; then
+                    # third (last) - search in the RetroPie style
+                    path="$(find "$RP_DATA" -type d -ipath "*/roms/$platform/*" -iname "$folder" -print -quit)"
+                fi
+            fi
         else
-            xtrasname="${file_name%.*}"
+            path="$(find_file Roms "$file_name" $ROM_EXT )"
         fi
 
-        region="$(get_data "Region" "$file")"
-        media="$(get_data "Media" "$file")"
-        controller="$(get_data "Controller" "$file")"
-        gametype="$(get_data "Gametype" "$file")"
-        originaltitle="$(get_data "Original Title" "$file")"
-        alternatetitle="$(get_data "Alternate Title" "$file")"
-        hackedby="$(get_data "Hacked by" "$file")"
-        translatedby="$(get_data "Translated by" "$file")"
-        version="$(get_data "Version" "$file")"
-        license="$(get_data "License" "$file")"
-        programmer="$(get_data "Programmer" "$file")"
-        musician="$(get_data "Musician" "$file")"
+        # video : find the video preview
+        video="$(find_file Movies "$file_name" "???")"
 
-        # cart : find it
-        cart="$(find_file "Artwork/Cart" "$file_name" png)"
+        # marquee : TODO
+        # there's no equivalent to marquee in ressurection.xtras
 
-        # title : find it
-        title="$(find_file "Artwork/Titles" "$file_name" png)"
+        # releasedate : "Release Year"
+        releasedate="$(get_data "Release Year" "$file")"
+        # Note: releasedate must be a date/time in the format %Y%m%dT%H%M%S or empty
+        if [[ "$releasedate" =~ ^[[:digit:]]{1,4}$ ]]; then
+            releasedate="$(date -d ${releasedate}-1-1 +%Y%m%dT%H%M%S)" || realeasedate=""
+        else
+            releasedate=""
+        fi
 
-        # action : find it
-        action="$(find_file "Artwork/Action" "$file_name" png)"
+        # developer : "Developer"
+        developer="$(get_data "Developer" "$file")"
 
-        # threedbox : find it
-        threedbox="$(find_file "Artwork/3D Boxart" "$file_name" png)"
+        # publisher : "Publisher"
+        publisher="$(get_data "Publisher" "$file")"
 
-        # gamefaq : find it
-        gamefaq="$(find_file "GameFAQs" "$file_name" zip)"
+        # genre : "Genre"
+        genre="$(get_data "Genre" "$file")"
 
-        # manual : find it
-        manual="$(find_file "Manuals" "$file_name" zip)"
+        # players : "Players"
+        players="$(get_data "Players" "$file")"
+        # Note: players must be an integer
+        [[ -n "$players" ]] && players=$(echo $players | sed 's/[^0-9 ]//g' | tr -s ' ' '\n' | sort -nr | head -1)
 
-        # vgmap : find it
-        vgmap="$(find_file "VGMaps" "$file_name" zip)"
+        # desc : the content below "______" to the end of file
+        [[ "$NO_DESC_FLAG" -eq 0 ]] && desc="$(sed '/^__________/,$!d' "$file" | tail -n +2 | tr -d '\r' | sed 's/&/&amp;/g')"
 
-    fi
+        if [[ "$FULL_FLAG" == 1 ]]; then
+            if [[ -n "$folder" ]]; then
+                xtrasname="$folder"
+            else
+                xtrasname="${file_name%.*}"
+            fi
+
+            region="$(get_data "Region" "$file")"
+            media="$(get_data "Media" "$file")"
+            controller="$(get_data "Controller" "$file")"
+            gametype="$(get_data "Gametype" "$file")"
+            originaltitle="$(get_data "Original Title" "$file")"
+            alternatetitle="$(get_data "Alternate Title" "$file")"
+            hackedby="$(get_data "Hacked by" "$file")"
+            translatedby="$(get_data "Translated by" "$file")"
+            version="$(get_data "Version" "$file")"
+            license="$(get_data "License" "$file")"
+            programmer="$(get_data "Programmer" "$file")"
+            musician="$(get_data "Musician" "$file")"
+
+            # cart : find it
+            cart="$(find_file "Artwork/Cart" "$file_name" png)"
+
+            # title : find it
+            title="$(find_file "Artwork/Titles" "$file_name" png)"
+
+            # action : find it
+            action="$(find_file "Artwork/Action" "$file_name" png)"
+
+            # threedbox : find it
+            threedbox="$(find_file "Artwork/3D Boxart" "$file_name" png)"
+
+            # gamefaq : find it
+            gamefaq="$(find_file "GameFAQs" "$file_name" zip)"
+
+            # manual : find it
+            manual="$(find_file "Manuals" "$file_name" zip)"
+
+            # vgmap : find it
+            vgmap="$(find_file "VGMaps" "$file_name" zip)"
+        fi # end of if FULL_FLAG
+    fi # end of if ONLY_IMG_FLAG
 
     if [[ "$NEW_ENTRY_FLAG" -eq 1 ]]; then
         xmlstarlet ed -L -s "/gameList" -t elem -n "$game" -v "" \
@@ -406,43 +417,47 @@ for file in "$@"; do
                 -s "/gameList/game[last()]" -t elem -n "musician" -v "$musician" \
                 "$gamelist"
         fi
+    elif [[ "$ONLY_IMG_FLAG" -eq 1 ]]; then
+        xmlstarlet ed -L \
+            -u "/gameList/$game[name=\"$name_real\"]/image" -v "${image//&amp;/&}" \
+            "$gamelist"
     else
         xmlstarlet ed -L \
-            -u "/gameList/$game[name=\"$name\"]/path" -v "$path" \
-            -u "/gameList/$game[name=\"$name\"]/image" -v "$image" \
-            -u "/gameList/$game[name=\"$name\"]/video" -v "$video" \
-            -u "/gameList/$game[name=\"$name\"]/marquee" -v "$marquee" \
-            -u "/gameList/$game[name=\"$name\"]/desc" -v "$desc" \
-            -u "/gameList/$game[name=\"$name\"]/releasedate" -v "$releasedate" \
-            -u "/gameList/$game[name=\"$name\"]/developer" -v "$developer" \
-            -u "/gameList/$game[name=\"$name\"]/publisher" -v "$publisher" \
-            -u "/gameList/$game[name=\"$name\"]/genre" -v "$genre" \
-            -u "/gameList/$game[name=\"$name\"]/players" -v "$players" \
+            -u "/gameList/$game[name=\"$name_real\"]/path" -v "${path//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/image" -v "${image//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/video" -v "${video//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/marquee" -v "${marquee//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/desc" -v "${desc//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/releasedate" -v "${releasedate//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/developer" -v "${developer//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/publisher" -v "${publisher//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/genre" -v "${genre//&amp;/&}" \
+            -u "/gameList/$game[name=\"$name_real\"]/players" -v "${players//&amp;/&}" \
             "$gamelist"
 
         if [[ "$game" == game && "$FULL_FLAG" == 1 ]]; then
             xmlstarlet ed -L \
-                -u "/gameList/game[name=\"$name\"]/region" -v "$region" \
-                -u "/gameList/game[name=\"$name\"]/platform" -v "$platform" \
-                -u "/gameList/game[name=\"$name\"]/media" -v "$media" \
-                -u "/gameList/game[name=\"$name\"]/controller" -v "$controller" \
-                -u "/gameList/game[name=\"$name\"]/gametype" -v "$gametype" \
-                -u "/gameList/game[name=\"$name\"]/xtrasname" -v "$xtrasname" \
-                -u "/gameList/game[name=\"$name\"]/originaltitle" -v "$originaltitle" \
-                -u "/gameList/game[name=\"$name\"]/alternatetitle" -v "$alternatetitle" \
-                -u "/gameList/game[name=\"$name\"]/hackedby" -v "$hackedby" \
-                -u "/gameList/game[name=\"$name\"]/translatedby" -v "$translatedby" \
-                -u "/gameList/game[name=\"$name\"]/version" -v "$version" \
-                -u "/gameList/game[name=\"$name\"]/cart" -v "$cart" \
-                -u "/gameList/game[name=\"$name\"]/title" -v "$title" \
-                -u "/gameList/game[name=\"$name\"]/action" -v "$action" \
-                -u "/gameList/game[name=\"$name\"]/threedbox" -v "$threedbox" \
-                -u "/gameList/game[name=\"$name\"]/gamefaq" -v "$gamefaq" \
-                -u "/gameList/game[name=\"$name\"]/manual" -v "$manual" \
-                -u "/gameList/game[name=\"$name\"]/vgmap" -v "$vgmap" \
-                -u "/gameList/game[name=\"$name\"]/license" -v "$license" \
-                -u "/gameList/game[name=\"$name\"]/programmer" -v "$programmer" \
-                -u "/gameList/game[name=\"$name\"]/musician" -v "$musician" \
+                -u "/gameList/game[name=\"$name_real\"]/region" -v "${region//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/platform" -v "${platform//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/media" -v "${media//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/controller" -v "${controller//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/gametype" -v "${gametype//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/xtrasname" -v "${xtrasname//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/originaltitle" -v "${originaltitle//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/alternatetitle" -v "${alternatetitle//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/hackedby" -v "${hackedby//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/translatedby" -v "${translatedby//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/version" -v "${version//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/cart" -v "${cart//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/title" -v "${title//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/action" -v "${action//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/threedbox" -v "${threedbox//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/gamefaq" -v "${gamefaq//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/manual" -v "${manual//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/vgmap" -v "${vgmap//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/license" -v "${license//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/programmer" -v "${programmer//&amp;/&}" \
+                -u "/gameList/game[name=\"$name_real\"]/musician" -v "${musician//&amp;/&}" \
                 "$gamelist"
         fi
     fi
