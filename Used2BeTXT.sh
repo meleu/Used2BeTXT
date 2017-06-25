@@ -220,6 +220,10 @@ for file in "$@"; do
             xtras_system="game boy"
             ;;
 
+        nintendovirtualboy)
+            platform="virtualboy"
+            ;;
+
         supernintendoentertainmentsystem)
             platform="snes"
             xtras_system="snes"
