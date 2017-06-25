@@ -130,19 +130,15 @@ while [[ -n "$1" ]]; do
             ;;
         --full)
             FULL_FLAG=1
-            shift
             ;;
         --no-desc)
             NO_DESC_FLAG=1
-            shift
             ;;
         --only-new)
             ONLY_NEW_FLAG=1
-            shift
             ;;
         --only-image)
             ONLY_IMG_FLAG=1
-            shift
             ;;
         --image)
             shift
@@ -162,12 +158,12 @@ while [[ -n "$1" ]]; do
                     exit 1
                     ;;
             esac
-            shift
             ;;
         *)
             break
             ;;
     esac
+    shift
 done
 
 
@@ -264,6 +260,11 @@ for file in "$@"; do
 
         bandaiwonderswancolor)
             platform="wonderswancolor" ;;
+
+        magnavoxodyssey2)
+            platform="videopac"
+            ROM_EXT+=" bin"
+            ;;
     esac
 
     gamelist="$platform"
