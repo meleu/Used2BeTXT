@@ -224,6 +224,11 @@ for file in "$@"; do
             xtras_system="game boy"
             ;;
 
+        supernintendoentertainmentsystem)
+            platform="snes"
+            xtras_system="snes"
+            ;;
+
         segamastersystem)
             platform="mastersystem"
             xtras_system="master system"
