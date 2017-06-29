@@ -169,6 +169,9 @@ done
 
 # PROCESSING FILES ###########################################################
 
+shopt -s nocaseglob
+shopt -s nocasematch
+
 for file in "$@"; do
     file_name="$(basename "${file%.*}")"
     platform=$(grep -m 1 "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
@@ -180,7 +183,7 @@ for file in "$@"; do
     [[ -z "$name" ]] && continue
 
     ROM_EXT="zip"
-    [[ "$(get_data "Media" "$file")" == CD ]] && ROM_EXT+=" cue"
+    [[ "$(get_data "Media" "$file")" =~ ^(cd|compact disc)$ ]] && ROM_EXT+=" cue"
     case "$platform" in
         atari2600)
             xtras_system="atari 2600"
