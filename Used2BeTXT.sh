@@ -12,6 +12,7 @@ FULL_FLAG=0
 NO_DESC_FLAG=0
 ONLY_NEW_FLAG=0
 ONLY_IMG_FLAG=0
+DEFAULT_GAMELIST_FLAG=0
 IMG_DIR="Artwork/Box Front"
 
 readonly RP_DATA="$HOME/RetroPie"
@@ -38,7 +39,11 @@ The OPTIONS are:
 
 --full          generate gamelist.xml using all metadata from \"synopsis1.txt\",
                 including the ones unused for EmulationStation. The converted
-                file will be named \"PLATFORM_FULL_gamelist.xml\".
+                file will be named \"PLATFORM_FULL_gamelist.xml\"
+                (see: --default-gamelist).
+
+--default-gamelist  the converted file will be named \"PLATFORM_gamelist.xml\" 
+                    even if using --full option.
 
 --image TYPE    choose the art type for <image>. Valid options for
                 TYPE: boxfront, cart, title, action, 3dbox.
@@ -139,6 +144,9 @@ while [[ -n "$1" ]]; do
             ;;
         --only-image)
             ONLY_IMG_FLAG=1
+            ;;
+        --default-gamelist)
+            DEFAULT_GAMELIST_FLAG=1
             ;;
         --image)
             shift
@@ -275,7 +283,7 @@ for file in "$@"; do
     esac
 
     gamelist="$platform"
-    [[ "$FULL_FLAG" == 1 ]] && gamelist+="_FULL"
+    [[ "$FULL_FLAG" == 1 && "$DEFAULT_GAMELIST_FLAG" != 1 ]] && gamelist+="_FULL"
     gamelist+="_gamelist.xml"
 
     [[ -f "$gamelist" ]] || echo "<gameList />" > "$gamelist"
