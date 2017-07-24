@@ -368,16 +368,16 @@ for file in "$@"; do
             musician="$(get_data "Musician" "$file")"
 
             # cart : find it
-            cart="$(find_file "Artwork/Cart" "$file_name" png)"
+            cart="$(find_file "Artwork/Cart" "$file_name" png jpg)"
 
             # title : find it
-            title="$(find_file "Artwork/Titles" "$file_name" png)"
+            title="$(find_file "Artwork/Titles" "$file_name" png jpg)"
 
             # action : find it
-            action="$(find_file "Artwork/Action" "$file_name" png)"
+            action="$(find_file "Artwork/Action" "$file_name" png jpg)"
 
             # threedbox : find it
-            threedbox="$(find_file "Artwork/3D Boxart" "$file_name" png)"
+            threedbox="$(find_file "Artwork/3D Boxart" "$file_name" png jpg)"
 
             # gamefaq : find it
             gamefaq="$(find_file "GameFAQs" "$file_name" zip)"
