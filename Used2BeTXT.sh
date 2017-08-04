@@ -26,6 +26,10 @@ readonly HELP="
 Usage:
 $0 [OPTIONS] synopsis1.txt [synopsisN.txt ...]
 
+The script gets data from \"synopsis1.txt\" and adds those data in xml format to
+a file named \"PLATFORM_gamelist.xml\", where PLATFORM is the one indicated in
+'Platform:' line in \"synopsis.txt\".
+
 The OPTIONS are:
 
 -h|--help       print this message and exit.
@@ -50,10 +54,6 @@ The OPTIONS are:
 
 --only-image    if updating a \"gamelist.xml\", only update the <image>,
                 useful for changing image TYPE (see: --image).
-
-The script gets data from \"synopsis1.txt\" and adds those data in xml format to
-a file named \"PLATFORM_gamelist.xml\", where PLATFORM is the one indicated in
-'Platform:' line in \"synopsis.txt\".
 "
 
 
@@ -85,6 +85,7 @@ function update_script() {
 }
 
 
+# TODO: better management of apersand '&'
 function get_data() {
     grep -m 1 -i "^$1:" "$2" | sed -e "s/^$1: //I; s/&/&amp;/g; s/\r//g"
 }
@@ -182,7 +183,8 @@ shopt -s nocasematch
 
 for file in "$@"; do
     file_name="$(basename "${file%.*}")"
-    platform=$(grep -m 1 "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
+    platform=$(get_data "Platform" "$file" | tr [:upper:] [:lower:])
+#    platform=$(grep -m 1 "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
     [[ -z "$platform" ]] && continue
 
     # name : the very first line of the txt file
@@ -206,13 +208,8 @@ for file in "$@"; do
             ROM_EXT+=" bin"
             ;;
 
-        nintendoentertainmentsystem)
+        nintendoentertainmentsystem|thefamilycomputerdisksystem|familycomputerdisksystem)
             platform="nes" 
-            xtras_system="nes"
-            ;;
-
-        thefamilycomputerdisksystem)
-            platform="fds"
             xtras_system="nes"
             ;;
 
