@@ -323,8 +323,9 @@ for file in "$@"; do
         # video : find the video preview
         video="$(find_file Movies "$file_name" "???")"
 
-        # marquee : TODO
-        # there's no equivalent to marquee in ressurection.xtras
+        # marquee : find the marquee
+        # TODO: need tests
+        marquee="$(find_file "Artwork/Marquee" "$file_name" png jpg )"
 
         # releasedate : "Release Year"
         releasedate="$(get_data "Release Year" "$file")"
