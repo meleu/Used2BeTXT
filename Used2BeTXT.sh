@@ -21,6 +21,7 @@ readonly SCRIPT_DIR="$(dirname "$0")"
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_FULL="$SCRIPT_DIR/$SCRIPT_NAME"
 readonly SCRIPT_URL="https://raw.githubusercontent.com/meleu/Used2BeTXT/master/Used2BeTXT.sh"
+readonly BKP_DIR="used2betxt-backups"
 
 readonly HELP="
 Usage:
@@ -117,7 +118,7 @@ function find_file() {
     fi
 
     found="$(find "$RP_DATA/Media/$platform/$dir" -type f \( "${args[@]}" \) -print -quit 2> /dev/null)"
-    [[ -z "$found" ]] \
+    [[ -z "$found" && -n "$xtras_system" ]] \
     && found="$(find "$RP_DATA/Media" -type f -ipath "$RP_DATA/Media/$xtras_system/$dir/*" \( "${args[@]}" \) -print -quit)"
 
     echo "${found//&/&amp;}"
@@ -181,10 +182,20 @@ done
 shopt -s nocaseglob
 shopt -s nocasematch
 
+# creating backups
+mkdir -p "$BKP_DIR"
+for gamelist in *_gamelist.xml; do
+    bkp_file="$BKP_DIR/${gamelist%%.*}_$(date +"%Y-%m-%d_%H%M%S").xml"
+    if [[ ! -f "$bkp_file.gz" ]]; then
+        cp "$gamelist" "$bkp_file"
+        gzip "$bkp_file"
+    fi
+done
+
+
 for file in "$@"; do
     file_name="$(basename "${file%.*}")"
-    platform=$(get_data "Platform" "$file" | tr [:upper:] [:lower:])
-#    platform=$(grep -m 1 "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
+    platform=$(grep -m 1 "^Platform: " "$file" | cut -d: -f2 | tr -d ' \r' | tr [:upper:] [:lower:])
     [[ -z "$platform" ]] && continue
 
     # name : the very first line of the txt file
