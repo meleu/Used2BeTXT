@@ -17,7 +17,7 @@ IMG_DIR="Artwork/Box Front"
 
 readonly RP_DATA="$HOME/RetroPie"
 
-readonly SCRIPT_DIR="$(dirname "$0")"
+readonly SCRIPT_DIR="$(cd "$(dirname $0)" && pwd)"
 readonly SCRIPT_NAME="$(basename "$0")"
 readonly SCRIPT_FULL="$SCRIPT_DIR/$SCRIPT_NAME"
 readonly SCRIPT_URL="https://raw.githubusercontent.com/meleu/Used2BeTXT/master/Used2BeTXT.sh"
@@ -184,14 +184,13 @@ shopt -s nocasematch
 
 # creating backups
 mkdir -p "$BKP_DIR"
-for gamelist in *_gamelist.xml; do
+while IFS= read -r gamelist || [[ -n $gamelist ]]; do
     bkp_file="$BKP_DIR/${gamelist%%.*}_$(date +"%Y-%m-%d_%H%M%S").xml"
     if [[ ! -f "$bkp_file.gz" ]]; then
         cp "$gamelist" "$bkp_file"
         gzip "$bkp_file"
     fi
-done
-
+done < <(find . -maxdepth 1 -name '*_gamelist.xml')
 
 for file in "$@"; do
     file_name="$(basename "${file%.*}")"
