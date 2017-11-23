@@ -299,12 +299,12 @@ for file in "$@"; do
     folder="$(get_data "Folder" "$file")"
     [[ -n "$folder" ]] && game=folder || game=game
 
-    if [[ $(xmlstarlet sel -t -v "count(/gameList/$game[name=\"$name_real\"])" "$gamelist") -eq 0 ]]; then
+    if [[ $(xmlstarlet sel -t -v "count(/gameList/$game[name=\"$name_real\"])" "$gamelist") == 0 ]]; then
         NEW_ENTRY_FLAG=1
     else
         NEW_ENTRY_FLAG=0
     fi
-    [[ "$NEW_ENTRY_FLAG" -eq 0 && "$ONLY_NEW_FLAG" -eq 1 ]] && continue
+    [[ "$NEW_ENTRY_FLAG" == 0 && "$ONLY_NEW_FLAG" == 1 ]] && continue
 
     # image : find the box art
     if [[ -n "$folder" ]]; then
@@ -313,7 +313,7 @@ for file in "$@"; do
         image="$(find_file "$IMG_DIR" "$file_name" png jpg )"
     fi
 
-    if [[ "$NEW_ENTRY_FLAG" -eq 1 || "$ONLY_IMG_FLAG" -eq 0 ]]; then
+    if [[ "$NEW_ENTRY_FLAG" == 1 || "$ONLY_IMG_FLAG" == 0 ]]; then
         # path : find the path
         if [[ -n "$folder" ]]; then
             # first - search in the "ressurection.xtras" style
@@ -361,7 +361,10 @@ for file in "$@"; do
         [[ -n "$players" ]] && players=$(echo $players | sed 's/[^0-9 ]//g' | tr -s ' ' '\n' | sort -nr | head -1)
 
         # desc : the content below "______" to the end of file
-        [[ "$NO_DESC_FLAG" -eq 0 ]] && desc="$(sed '/^__________/,$!d' "$file" | tail -n +2 | tr -d '\r' | sed 's/&/&amp;/g')"
+        if [[ "$NO_DESC_FLAG" == 0 ]]; then
+            desc="$(sed '/^__________/,$!d' "$file" | tail -n +2 | tr -d '\r' | sed 's/&/&amp;/g')"
+            desc="$(grep -Ev '^(https?|ftp)://[^\s/$.?#].[^\s]*$' <<< "$desc")"
+        fi
 
         if [[ "$FULL_FLAG" == 1 ]]; then
             if [[ -n "$folder" ]]; then
@@ -406,7 +409,7 @@ for file in "$@"; do
         fi # end of if FULL_FLAG
     fi # end of if ONLY_IMG_FLAG
 
-    if [[ "$NEW_ENTRY_FLAG" -eq 1 ]]; then
+    if [[ "$NEW_ENTRY_FLAG" == 1 ]]; then
         xmlstarlet ed -L -s "/gameList" -t elem -n "$game" -v "" \
             -s "/gameList/$game[last()]" -t elem -n "name" -v "$name" \
             -s "/gameList/$game[last()]" -t elem -n "path" -v "$path" \
@@ -446,7 +449,7 @@ for file in "$@"; do
                 -s "/gameList/game[last()]" -t elem -n "musician" -v "$musician" \
                 "$gamelist"
         fi
-    elif [[ "$ONLY_IMG_FLAG" -eq 1 ]]; then
+    elif [[ "$ONLY_IMG_FLAG" == 1 ]]; then
         xmlstarlet ed -L \
             -u "/gameList/$game[name=\"$name_real\"]/image" -v "${image//&amp;/&}" \
             "$gamelist"
