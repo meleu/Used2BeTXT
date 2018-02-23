@@ -13,6 +13,8 @@ NO_DESC_FLAG=0
 ONLY_NEW_FLAG=0
 ONLY_IMG_FLAG=0
 DEFAULT_GAMELIST_FLAG=0
+REVERSE_FLAG=0
+PLATFORM=
 IMG_DIR="Artwork/Box Front"
 
 readonly RP_DATA="$HOME/RetroPie"
@@ -169,12 +171,83 @@ while [[ -n "$1" ]]; do
                     ;;
             esac
             ;;
+        -r|--reverse)
+            shift
+            xmlfile="$1"
+            if [[ ! -f "$xmlfile" ]]; then
+                echo "ERROR: no such file: \"$xmlfile\"" >&2
+                exit 1
+            fi
+            REVERSE_FLAG=1
+            ;;
+        -p|--platform)
+            shift
+            PLATFORM="$1"
+            if [[ -z "$PLATFORM" ]]; then
+                echo "ERROR: you must set a platform." >&2
+                exit 1
+            fi
+            ;;
         *)
             break
             ;;
     esac
     shift
 done
+
+
+# CONVERTING FROM GAMELIST.XML TO SYNOPSIS.TXT ###############################
+
+if [[ "$REVERSE_FLAG" == 1 ]]; then
+    if [[ -z "$PLATFORM" ]]; then
+        echo "ERROR: you must set a platform with the option \"--platform\"." >&2
+        exit 1
+    fi
+
+    IFS=$'\n' names=($(xmlstarlet sel -t -v "/gameList/game/name" "$xmlfile"))
+
+    for name in "${names[@]}"; do
+        echo -n "Generating \"${name}.txt\"... "
+        cat > "${name}.txt" << _EoF_
+$name
+Platform: $PLATFORM
+Region: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/region" "$xmlfile")
+Media: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/media" "$xmlfile")
+Controller: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/controller" "$xmlfile")
+Genre: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/genre" "$xmlfile")
+Gametype: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/gametype" "$xmlfile")
+Release Year: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/releasedate" "$xmlfile" | grep -o '^.\{4\}')
+Developer: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/developer" "$xmlfile")
+Publisher: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/publisher" "$xmlfile")
+Players: $(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/players" "$xmlfile")
+_________________________
+$(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/desc" "$xmlfile")
+_EoF_
+        echo "Done!"
+
+#       PLATFORM="$(      xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/platform" "$xmlfile")"
+#        path="$(          xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/path" "$xmlfile")"
+#        image="$(         xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/image" "$xmlfile")"
+#        video="$(         xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/video" "$xmlfile")"
+#        marquee="$(       xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/marquee" "$xmlfile")"
+#        xtrasname="$(     xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/xtrasname" "$xmlfile")"
+#        originaltitle="$( xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/originaltitle" "$xmlfile")"
+#        alternatetitle="$(xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/alternatetitle" "$xmlfile")"
+#        hackedby="$(      xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/hackedby" "$xmlfile")"
+#        translatedby="$(  xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/translatedby" "$xmlfile")"
+#        version="$(       xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/version" "$xmlfile")"
+#        cart="$(          xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/cart" "$xmlfile")"
+#        title="$(         xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/title" "$xmlfile")"
+#        action="$(        xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/action" "$xmlfile")"
+#        threedbox="$(     xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/threedbox" "$xmlfile")"
+#        gamefaq="$(       xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/gamefaq" "$xmlfile")"
+#        manual="$(        xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/manual" "$xmlfile")"
+#        vgmap="$(         xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/vgmap" "$xmlfile")"
+#        license="$(       xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/license" "$xmlfile")"
+#        programmer="$(    xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/programmer" "$xmlfile")"
+#        musician="$(      xmlstarlet sel -t -v "/gameList/game[name=\"$name\"]/musician" "$xmlfile")"
+    done
+fi
 
 
 # PROCESSING FILES ###########################################################
