@@ -218,72 +218,72 @@ for file in "$@"; do
             ROM_EXT+=" bin"
             ;;
 
-        nintendoentertainmentsystem|thefamilycomputerdisksystem|familycomputerdisksystem)
+        nintendoentertainmentsystem|thefamilycomputerdisksystem|familycomputerdisksystem|nes)
             platform="nes" 
             xtras_system="nes"
             ;;
 
-        nintendogameboyadvance)
+        nintendogameboyadvance|gba)
             platform="gba"
             xtras_system="game boy advance"
             ;;
 
-        nintendogameboycolor)
+        nintendogameboycolor|gbc)
             platform="gbc"
             xtras_system="game boy color"
             ;;
 
-        nintendogameboy)
+        nintendogameboy|gb)
             platform="gb"
             xtras_system="game boy"
             ;;
 
-        nintendovirtualboy)
+        nintendovirtualboy|virtualboy)
             platform="virtualboy"
             ;;
 
-        supernintendoentertainmentsystem)
+        supernintendoentertainmentsystem|snes)
             platform="snes"
             xtras_system="snes"
             ;;
 
-        segamastersystem)
+        segamastersystem|mastersystem)
             platform="mastersystem"
             xtras_system="master system"
             ;;
 
-        segagamegear)
+        segagamegear|gamegear)
             platform="gamegear" ;;
 
-        segasg-1000)
+        segasg-1000|sg-1000)
             platform="sg-1000" ;;
 
-        segagenesis/megadrive)
+        segagenesis/megadrive|genesis|megadrive)
             platform="megadrive"
             xtras_system="genesis"
             ;;
 
-        sega/megacd)
+        sega/megacd|segacd)
             platform="segacd" ;;
 
-        turbografx-16/pcengine)
+        turbografx-16/pcengine|pcengine)
             platform="pcengine" ;;
 
-        neogeopocket)
+        neogeopocket|ngp)
             platform="ngp"
             xtras_system="neo geo pocket"
             ;;
 
-        colecovision)
+        colecovision|coleco)
             platform="coleco" ;;
 
-        bandaiwonderswan)
+        bandaiwonderswan|wonderswan)
             platform="wonderswan" ;;
 
-        bandaiwonderswancolor)
+        bandaiwonderswancolor|wonderswancolor)
             platform="wonderswancolor" ;;
 
-        magnavoxodyssey2)
+        magnavoxodyssey2|videopac)
             platform="videopac"
             ROM_EXT+=" bin"
             ;;
